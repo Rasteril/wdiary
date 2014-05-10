@@ -8,20 +8,6 @@
 #include <stdarg.h> // va_arg, indefinite parameter count
 
 
-/*
- * The idea: 
- * 	wdiary "Sometext" save to file with current date;
- * 	if the file with current date exists, append to that file. 
-* 	wdiary list: list all entries
- * 	database to store information 'bout entries: a regular text file with lines and things
- */
-
-/*
- * get the date
- * open a file with the current date
- * if the file already exists, append to it, if not, write to it 
- * paste in the argv[1] */
-
 #define TRUE 1
 #define FALSE 0
 #define SIZE 1024
