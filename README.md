@@ -13,3 +13,10 @@
 ### GUI Browse functionality:
 
     wdiary -b
+    
+### Verbose mode:
+    
+basically, just append another argument 
+
+    wdiary  -v 
+    
