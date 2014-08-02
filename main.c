@@ -7,7 +7,6 @@ int main(int argc, char *argv[])
 {
 	// variables that are needed in the argument parsing process 
 	
-
 	struct form_results *pfr = &fr;
 
 	char file_name[FILE_NAME_MAX_SIZE];
@@ -22,17 +21,10 @@ int main(int argc, char *argv[])
 	int oflags = O_WRONLY;
 	int fd;
 
-	printf("Out of process_args\n");
-
 	if(gui_write_mode)
 	{
-		printf("in the check!\n");
-
-		//printf("%i is the sizeof\n", sizeof(pfr->file_name[0]));
-		pfr->file_name[0] = 'F';
 
 		launch_write_form(pfr);
-		printf("Reached HERE");
 		write_to_data_file(pfr->file_name, pfr->text, date, pfr->tags_raw, saved_tags_array);
 	}
 
@@ -40,7 +32,6 @@ int main(int argc, char *argv[])
 	{
 		write_to_data_file(file_name, text, date, tags_raw, saved_tags_array);
 	}
-
 
 
 	return EXIT_SUCCESS;
