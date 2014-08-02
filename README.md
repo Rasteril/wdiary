@@ -1,15 +1,15 @@
 #wdiary
 
-##Quick use at the command line:
+### Quick use at the command line:
 
-wdiary "Text to write"
-wdiary -n "Explicit note title" "Text to write"
-wdiary -n "Title" -t "tags,for,later,browsing" "Text"
+    wdiary "Text to write"
+    wdiary -n "Explicit note title" "Text to write"
+    wdiary -n "Title" -t "tags,for,later,browsing" "Text"
 
-## GUI Write functionality:
+### GUI Write functionality:
 
-wdiary -g
+    wdiary -g
 
-## GUI Browse functionality:
+### GUI Browse functionality:
 
-wdiary -b
+    wdiary -b
