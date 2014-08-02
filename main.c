@@ -1,142 +1,56 @@
-#include <unistd.h>
-#include <time.h>
-#include <fcntl.h> // for the open() oflags
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h> // for the file_exists function
-#include <string.h>
-#include <stdarg.h> // va_arg, indefinite parameter count
+#include "proto.h"
+#include <regex.h>
 
-
-#define TRUE 1
-#define FALSE 0
-#define SIZE 1024
-
-#define DEBUG_MODE TRUE
-
-#define PROGRAM_NAME "wdiary"
-#define FILE_NAME_MAX_SIZE 256
-
-
-//Log functions
-void debug(char *, ...);
-void error(char *);
-
-void usage();
-char *get_date();
-int file_exists(char *);
-int process_args(int argc, char *argv[], char *file_name, char *text);
+int gui_write_mode = FALSE;
 
 int main(int argc, char *argv[])
 {
-	char file_name[256];
-	char text[SIZE];
-	process_args(argc, argv, file_name, text);
+	// variables that are needed in the argument parsing process 
+	
+
+	struct form_results *pfr = &fr;
+
+	char file_name[FILE_NAME_MAX_SIZE];
+	char text[TEXT_MAX_SIZE];
+	char tags_raw[TAGS_MAX_SIZE];
+	char saved_tags_array[TAG_MAX_COUNT][TAG_WORD_MAX_SIZE];
+
+	strcpy(file_name, "---"); // no filename, to be filtered. 
+	process_args(argc, argv, file_name, text, tags_raw,  saved_tags_array);
 
 	char *date = get_date();
 	int oflags = O_WRONLY;
 	int fd;
-	char string[SIZE];
-	
-	if(file_exists(file_name))
-	{
-		oflags |= O_APPEND;
-		printf("Appending to file '%s'\n", file_name);
-		snprintf(string, SIZE, "\n\n%s\n\n------\n", text);
 
+	printf("Out of process_args\n");
+
+	if(gui_write_mode)
+	{
+		printf("in the check!\n");
+
+		//printf("%i is the sizeof\n", sizeof(pfr->file_name[0]));
+		pfr->file_name[0] = 'F';
+
+		launch_write_form(pfr);
+		printf("Reached HERE");
+		write_to_data_file(pfr->file_name, pfr->text, date, pfr->tags_raw, saved_tags_array);
 	}
 
 	else
 	{
-		oflags |= O_CREAT;
-		printf("\nCreating entry as file '%s'\n", file_name);
-		snprintf(string, SIZE, "\nWDiary Note :: write date: [%s] :: write name: [%s]\n------\n\n%s\n\n------\n", date, file_name, text);
-
+		write_to_data_file(file_name, text, date, tags_raw, saved_tags_array);
 	}
 
 
-	if((fd = open(file_name, oflags, S_IWUSR | S_IRUSR)) != -1)
-	{
-		debug("File opened sucessfully");
-		debug("strlen(text) = %d", strlen(text));
-
-		if((write(fd, string, strlen(string))) == strlen(string))
-		{
-			debug("Successfully written to file");
-		}
-
-		debug(text);
-	}
-
-	else
-	{
-		error("Opening file");
-	}
 
 	return EXIT_SUCCESS;
 
 }
 
-void usage() 
+
+int process_args(int argc, char *argv[], char *file_name, char *text, char *tags_raw, char saved_tags_array[][TAG_WORD_MAX_SIZE])
 {
-	printf("\nIncorrect usage!\n");
-	printf("%s <text>\n", PROGRAM_NAME);
-}
-
-
-char *get_date()
-{
-	time_t current_time;
-	struct tm *tm_ptr;
-	static char date[256];
-	(void)time(&current_time);
-	tm_ptr = localtime(&current_time);
-	strftime(date, 256, "%d-%m-%Y", tm_ptr);
-	return date;
-	
-}
-
-int file_exists(char *filename)
-{
-	struct stat buffer;
-	int ret = stat(filename, &buffer);
-	if(ret == 0)
-	{
-		return TRUE;
-	}
-	
-	else
-	{
-		return FALSE;
-	}
-}
-
-void debug(char *debug_msg, ...)
-{
-	if(DEBUG_MODE)
-	{
-
-		char msg[256];
-		va_list list;
-		sprintf(msg, "\n[DEBUG] %s \n", debug_msg);
-
-		va_start(list, debug_msg);
-
-		int argument = va_arg(list, int);
-		printf(msg, argument);
-
-		va_end(list);
-	}
-}
-
-void error(char *error_msg)
-{
-	printf("\n[ERROR] %s\n", error_msg);
-}
-
-int process_args(int argc, char *argv[], char *file_name, char *text)
-{
-	int curr_arg;
+	int curr_arg = 0;
 	do
 	{
 		switch(curr_arg)
@@ -150,30 +64,124 @@ int process_args(int argc, char *argv[], char *file_name, char *text)
 				strcpy(file_name, get_date());
 				break;
 
+			case 't':
+				strcpy(tags_raw, optarg);
+				debug("Tags: %s", tags_raw);
+				process_tags(saved_tags_array, tags_raw);
+				break;
+			case 'v':
+				verbose_mode = TRUE;
+				break;
+
+			case 'g':
+				printf("Started the arg\n");
+
+				gui_write_mode = TRUE;
+				break;
+
+			case 'b':
+				start_gui_browse_mode();
+				break;
+
 			case '?':
 				debug("optopt ?");
 				error("Invalid option");
 				_exit(EXIT_FAILURE);
 				break;
-
-			default:
-
-				if(argc < 2)
-				{
-					usage();
-					_exit(EXIT_FAILURE);
-				}
-
-
-				else
-				{
-					strcpy(file_name, get_date());
-					break;
-				}
 		}
 
 	}
-	while((curr_arg = getopt(argc, argv, "n:d")) != -1);
+	while((curr_arg = getopt(argc, argv, "bgvn:t:d")) != -1);
 
-	strcpy(text, argv[optind]);
+
+	if(!gui_write_mode)
+	{
+		if(argc == optind) // there are as many arguments, as there are option arguments. This means the extra parameter for the actual message text is missing. 
+		{
+			usage();
+			_exit(EXIT_FAILURE);
+		}
+
+		strcpy(text, argv[optind]);
+	}
 }
+
+
+
+void usage() 
+{
+	printf("\nIncorrect usage!\n");
+	printf("%s <text>\n", PROGRAM_NAME);
+}
+
+
+// PROCESS TAGS transform the tags_raw string variable into an array of single strings, ommiting any commas inbetween. 
+
+int process_tags(char res_array[][20], char *tags_raw)
+{
+	int i, j, valid, tag_num, previ;
+	tag_num = 0;
+	previ = 0;
+	valid = check_tags(tags_raw);
+
+	if(!valid) // tags_raw consists of alphanumeric characters and commas only
+	{
+		error("Invalid tags text");
+		_exit(EXIT_FAILURE);
+	}
+
+	else // passes regex control
+	{
+		debug("passed");
+		for(i = 0; i <= strlen(tags_raw); i++) // loop through all of the tag characters
+		{
+			debug("i = %d", i);
+			debug("%c", tags_raw[i]);
+			debug("tags_raw[strlen(tags_raw)] = %d", tags_raw[strlen(tags_raw)]);
+			if(tags_raw[i] != ',' && i != strlen(tags_raw)) // find delimiter ( character that separates the individual tag entries )
+			{
+				continue;
+			}
+
+			else // (delimiter) comma found
+			{
+
+				debug(" i = %d, previ = %d", i, previ);
+				
+				for(j = 0; j < (i - previ); j++) // put all the characters from the last delimiter (or beginning) to the current value of i (the position of the current delimiter)
+				// j goes from 0 to i, the 2nd dimension is always (i - previ) characters big
+				{
+					// TODO  make the res_array big enough to hold all the tag things. Maybe, expand it gradually
+
+					res_array[tag_num][j] = tags_raw[j + previ]; // insert into `tag_num`th res_array 1st dimensionelement and jth 2nd dimension element of res_array that (i - previ) characters starting from previ and going towars (previ + j);
+				}
+				tag_num++; // start pushing the new tag characters into another array in the second dimension
+				previ = i + 1;
+			}
+		}
+	}
+}
+
+int check_tags(char *tags_raw)
+{
+	int ret;
+	regex_t regex;
+
+	// compile the regular expression
+	ret = regcomp(&regex, "^[a-zA-Z,]*$", 0);
+	if(ret == TRUE) return FALSE;
+
+	// execute
+	ret = regexec(&regex, tags_raw, 0, NULL, 0);
+
+	if(ret == FALSE)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
