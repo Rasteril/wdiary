@@ -28,10 +28,12 @@ int process_args(int argc, char *argv[], char *file_name, char *text, char *tags
  */
 
 int start_gui_browse_mode();
-int populate_data_array(char data_array[][FIELD_COUNT][FIELD_SIZE]);
+int populate_data_array(char data_array[][FIELD_COUNT][FIELD_SIZE], int entry_offsets[ENTRY_MAX_COUNT]);
 WINDOW *draw_menu(WINDOW *menu_win, int entry_count, char data_array[][FIELD_COUNT][FIELD_SIZE], int menu_pointer);
 void menu_cursor(int *menu_pointer, char direction, int entry_count);
 void show_entry_text(WINDOW *text_win, int entry_id, char data_array[][FIELD_COUNT][FIELD_SIZE]);
+void delete_entry (int entry_id, char data_array[][FIELD_COUNT][FIELD_SIZE], int entry_offsets[ENTRY_MAX_COUNT]);
+void reset_window(WINDOW *window);
 
 /*
  * WRITE.C

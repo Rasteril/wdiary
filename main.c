@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
 	int oflags = O_WRONLY;
 	int fd;
 
-	printf("Out of process_args\n");
 
 	if(gui_write_mode)
 	{
