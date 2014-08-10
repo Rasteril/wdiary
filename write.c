@@ -33,41 +33,39 @@ void write_to_data_file(char *file_name, char *text, char *date, char *tags_raw,
 
 
 		// a lot of checks to guarantee data integrity
+		
+		// calculate length
+		int entry_length = strlen(file_name)
+		   					+ 1 /* = FIELD_DELIMITER */ 
+							+ strlen(text) 
+							+ 1 /* = FIELD_DELIMITER */ 
+							+ strlen(date) 
+							+ 1 /* = FIELD_DELIMITER */ 
+							+ strlen(tags_raw) 
+							+ 1; /* = ENTRY_DELIMITER*/
 
-		if((write(fd, file_name, strlen(file_name))) == strlen(file_name))
+		char composed_string[entry_length];
+
+		strncpy(composed_string, file_name, strlen(file_name));
+		strncat(composed_string, &field_delimiter, 1);
+		strncat(composed_string, text, strlen(text));
+		strncat(composed_string, &field_delimiter, 1);
+		strncat(composed_string, date, strlen(date));
+		strncat(composed_string, &field_delimiter, 1);
+		strncat(composed_string, tags_raw, strlen(tags_raw));
+		strncat(composed_string, &entry_delimiter, 1);
+
+
+		if(write(fd, composed_string, entry_length) == entry_length)
 		{
-			if((write(fd, &field_delimiter, 1)) == 1) // separator
-			{
-				if((write(fd, text, strlen(text))) == strlen(text))
-				{
-					if((write(fd, &field_delimiter, 1)) == 1) //separator
-					{
-						if((write(fd, date, strlen(date))) == strlen(date))
-						{
-							if((write(fd, &field_delimiter, 1)) ==1) //separator
-							{
-								if((write(fd, tags_raw, strlen(tags_raw))) == strlen(tags_raw))
-								{
-									if((write(fd, &entry_delimiter, 1)) == 1)
-									{
-										debug("Everything has been successfully written to the DATA_FILE");
-									}
-									else error(errmsg);
-								}
-								else error(errmsg);
-							}
-							else error(errmsg);
-						}
-						else error(errmsg);
-					}
-					else error(errmsg);
-				}
-				else error(errmsg);
-			}
-			else error(errmsg);
+			debug("Message successfully written to %s", DATA_FILE);
 		}
 
-		else error(errmsg);
+		else 
+		{
+			debug("Error writing to %s", DATA_FILE);
+			error("Writing to data file");
+		}
 	}
 
 	else
