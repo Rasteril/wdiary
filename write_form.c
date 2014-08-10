@@ -14,15 +14,12 @@ int launch_write_form(struct form_results *pfr)
 
 	FIELD *fields[FORM_FIELD_COUNT];
 	FORM *main_form;
+
 	int ch, i;
-	unsigned short field_width;
-	field_width = COLS - 20;
+	unsigned short field_width = COLS - 20;
+
 	int startx = 15;
 	int starty = 4;
-
-	struct field_prop submitted_fields[FORM_FIELD_COUNT - 1];
-
-
 
 	// filename
 	fields[FORM_FILE_NAME_FIELD] = new_field(1, field_width, starty, startx, 0, 0);
@@ -39,8 +36,16 @@ int launch_write_form(struct form_results *pfr)
 	for(i = 0; i < FORM_FIELD_COUNT - 1; i++)
 	{
 		set_field_back(fields[i], A_REVERSE);
-	}
 
+		// make fields dynamically scalable
+		field_opts_off(fields[i], O_STATIC);
+
+		// prevent from skipping to another field when done full
+		field_opts_off(fields[i], O_AUTOSKIP);
+
+		set_max_field(fields[i], FIELD_SIZE);
+
+	}
 
 	main_form = new_form(fields);
 	post_form(main_form);
@@ -49,11 +54,6 @@ int launch_write_form(struct form_results *pfr)
 	mvprintw(starty + 2, startx - 10, "Text: ");
 	mvprintw(starty + 10, startx - 10, "Tags: ");
 	refresh();
-
-	// TODO: 
-	// - make the fields scalable and with a max size
-	// - make the fields turn red on field filled
-	// - tags functionality
 
 	while((ch = getch()) != KEY_F(1))
 	{	switch(ch)
@@ -103,8 +103,9 @@ int launch_write_form(struct form_results *pfr)
 				break;
 
 			case ENTER_KEY:
-				form_driver(main_form, REQ_NEXT_LINE);
+				display_message("Newlines not supported yet");
 				break;
+
 
 			default:
 				// Normal characters get printed
@@ -129,20 +130,9 @@ void submit(struct form_results *pfr, FIELD **fields, FORM *main_form)
 {
 	// request the correct values of all the form fields (even when still active in the field)
 	form_driver(main_form, REQ_VALIDATION);
-
-
-	int i, j, n = 0;
-	/* for(i = 0; i < FORM_FIELD_COUNT - 1; i++) */
-	/* { */
-	/* 	// copy from the UI to a more permanent storage */
-	/* 	strcpy(submitted_fields[i].buffer, trim_spaces(field_buffer(fields[i], 0))); */
-	/* } */
-
 	strcpy(pfr->file_name, trim_spaces(field_buffer(fields[FORM_FILE_NAME_FIELD], 0)));
 	strcpy(pfr->text, trim_spaces(field_buffer(fields[FORM_TEXT_FIELD], 0)));
 	strcpy(pfr->tags_raw, trim_spaces(field_buffer(fields[FORM_TAGS_FIELD], 0)));
-
-
 
 	display_message("Note successfully saved!");
 	refresh();

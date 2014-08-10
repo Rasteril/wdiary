@@ -21,10 +21,6 @@ int main(int argc, char *argv[])
 	int oflags = O_WRONLY;
 	int fd;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 32a2ceacb3cfea1ce1b7da6aa4c0206550de5327
 	if(gui_write_mode)
 	{
 
