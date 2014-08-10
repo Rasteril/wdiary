@@ -1,3 +1,6 @@
+#include "proto.h"
+
+#include <regex.h>
 
 // PROCESS TAGS transform the tags_raw string variable into an array of single strings, ommiting any commas inbetween. 
 

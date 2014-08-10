@@ -4,7 +4,7 @@
 #include <sys/ioctl.h>
 
 
-int start_gui_browse_mode()
+int start_gui_browse_mode(char *browse_mode)
 {
 	char data_array[ENTRY_MAX_COUNT][FIELD_COUNT][FIELD_SIZE];
 	int entry_count;
@@ -30,7 +30,7 @@ int start_gui_browse_mode()
 	attron(COLOR_PAIR(COL_PAIR_HEADING));
 	addstr("WDiary BROWSE");	
 	attroff(COLOR_PAIR(COL_PAIR_HEADING));
-	printw(" mode (by date)");
+	printw(" mode (by %s)", browse_mode);
 	refresh();
 
 	int entry_offsets[ENTRY_MAX_COUNT];
@@ -114,7 +114,6 @@ int populate_data_array(char data_array[][FIELD_COUNT][FIELD_SIZE], int entry_of
 				data_array[entry_count][field_count][i] = 0;
 
 				// assign the offset
-
 				entry_offsets[entry_count] = current_entry_offset;
 
 				
@@ -154,12 +153,10 @@ WINDOW *draw_menu(WINDOW *menu_win, int entry_count, char data_array[][FIELD_COU
 		// get the cols before the short-text
 		int pre_size = (strlen(data_array[i][D_DATE]) + 2 /* = parenthesis*/ + strlen(data_array[i][D_FILE_NAME]) + 1 /* = space*/);
 
-
 		// the menu window width without the padding
 		int menu_width = (COLS / 2) - 8 /* = padding */;
 
 		int short_text_size = (pre_size < menu_width) ? (menu_width - pre_size) : 0;
-
 		char *short_text = malloc(strlen(data_array[i][D_TEXT]) * sizeof(char));
 
 		if(strlen(data_array[i][D_TEXT]) > short_text_size)
@@ -178,7 +175,19 @@ WINDOW *draw_menu(WINDOW *menu_win, int entry_count, char data_array[][FIELD_COU
 			wattron(menu_win, COLOR_PAIR(COL_PAIR_MENU_ITEM));
 		}
 
-		wprintw(menu_win, "%s(%s) ", data_array[i][D_DATE],data_array[i][D_FILE_NAME]);
+
+		if(strcmp(data_array[i][D_FILE_NAME], "---"))
+		{
+			wprintw(menu_win, "%s(%s) ", data_array[i][D_DATE],data_array[i][D_FILE_NAME]);
+		}
+
+		else
+		{
+			wprintw(menu_win, "%s ", data_array[i][D_DATE]);
+		}
+
+
+
 		wattron(menu_win, COLOR_PAIR(COL_PAIR_MENU_SHORT_TEXT));
 		waddstr(menu_win,  short_text);
 		wattroff(menu_win, COLOR_PAIR(COL_PAIR_MENU_SHORT_TEXT));

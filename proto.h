@@ -27,7 +27,7 @@ int process_args(int argc, char *argv[], char *file_name, char *text, char *tags
  * BROWSE.C
  */
 
-int start_gui_browse_mode();
+int start_gui_browse_mode(char *browse_mode);
 int populate_data_array(char data_array[][FIELD_COUNT][FIELD_SIZE], int entry_offsets[ENTRY_MAX_COUNT]);
 WINDOW *draw_menu(WINDOW *menu_win, int entry_count, char data_array[][FIELD_COUNT][FIELD_SIZE], int menu_pointer);
 void menu_cursor(int *menu_pointer, char direction, int entry_count);
