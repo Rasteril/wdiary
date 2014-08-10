@@ -1,6 +1,6 @@
 # WDiary
 
-NCurses diary application
+ncurses diary application
 
 ## General Usage
 
